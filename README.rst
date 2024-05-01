@@ -3,16 +3,20 @@ Spleen data downloader
 
 |Version| |MIT License| |ci|
 
-``pl-spleendata`` is a `ChRIS <https://chrisproject.org/>`__ *FS* plugin
-which downloads an exemplar spleen dataset useful for training and
-inference experiments.
+``pl-spleendatads`` is a `ChRIS <https://chrisproject.org/>`__ *DS*
+plugin which downloads an exemplar spleen dataset useful for training
+and inference experiments.
 
 Abstract
 --------
 
-This is a simple *FS* plugin suitable for training and inference on 3D
+This is a simple *DS* plugin suitable for training and inference on 3D
 spleen NiFTI volumes, as part of the `MONAI spleen segmentation exemplar
 notebook <https://github.com/Project-MONAI/tutorials/blob/main/3d_segmentation/spleen_segmentation_3d.ipynb>`__.
+*DS* plugins are suitable as non-root nodes of ChRIS compute trees,
+i.e. nodes that have a parent node. If you need a *root node* spleen
+data origin, use the `companion FS spleen data
+node <https://github.com/FNNDSC/pl-spleendata>`__.
 
 By default, the download is pretty big – 1.2Gb, so make sure you have
 time and space. It is possible to post-download prune this. For example,
@@ -27,7 +31,7 @@ You still need to download the whole set, however, before you can prune.
 Installation
 ------------
 
-``pl-spleendata`` is a `ChRIS <https://chrisproject.org/>`__ *plugin*,
+``pl-spleendatads`` is a `ChRIS <https://chrisproject.org/>`__ *plugin*,
 meaning it can run from either within *ChRIS* or the command-line.
 
 Local Usage
@@ -36,14 +40,14 @@ Local Usage
 On the metal
 ~~~~~~~~~~~~
 
-If you have checked out the repo, you can simply run ``spleendata``
+If you have checked out the repo, you can simply run ``spleendatads``
 using
 
 .. code:: shell
 
    source venv/bin/activate
-   pip install -U ./ 
-   spleendata output/
+   pip install -U ./
+   spleendatads input/ output/
 
 PyPI
 ~~~~
@@ -52,7 +56,7 @@ Alternatively, you can just do a
 
 .. code:: shell
 
-   pip install spleendata
+   pip install spleendatads
 
 to get directly from PyPI.
 
@@ -60,29 +64,30 @@ apptainer
 ~~~~~~~~~
 
 The recommended way is to use `Apptainer <https://apptainer.org/>`__
-(a.k.a. Singularity) to run ``pl-spleendata`` as a container:
+(a.k.a. Singularity) to run ``pl-spleendatads`` as a container:
 
 .. code:: shell
 
-   apptainer exec docker://fnndsc/pl-spleendata spleendata [--args values...] output/
+   apptainer exec docker://fnndsc/pl-spleendatads spleendatads [--args values...] input/ output/
 
 To print its available options, run:
 
 .. code:: shell
 
-   apptainer exec docker://fnndsc/pl-spleendata spleendata --help
+   apptainer exec docker://fnndsc/pl-spleendatads spleendatads --help
 
 Examples
 --------
 
-``spleendata``, being a ChRIS *FS* plugin, only requires one positional
-argument: a directory that will contain the output data. Simply create
-an empty ``output``.
+``spleendatads``, being a ChRIS *DS* plugin, requires two positional
+arguments: an input directory from the upstream parent, and a directory
+that will contain the output data. Simply create an empty ``input`` and
+``output``.
 
 .. code:: shell
 
    mkdir output
-   apptainer exec docker://fnndsc/pl-spleendata:latest spleendata [--args] incoming/ outgoing/
+   apptainer exec docker://fnndsc/pl-spleendatads:latest spleendatads [--args] input/ output/
 
 Development
 -----------
@@ -96,20 +101,20 @@ Build a local container image:
 
 .. code:: shell
 
-   docker build -t localhost/fnndsc/pl-spleendata .
+   docker build -t localhost/fnndsc/pl-spleendatads .
 
 Running
 ~~~~~~~
 
-Mount the source code ``spleendata.py`` into a container to try out
+Mount the source code ``spleendatads.py`` into a container to try out
 changes without rebuild.
 
 .. code:: shell
 
    docker run --rm -it --userns=host -u $(id -u):$(id -g) \
-       -v $PWD/spleendata.py:/usr/local/lib/python3.11/site-packages/spleendata.py:ro \
+       -v $PWD/spleendatads.py:/usr/local/lib/python3.12/site-packages/spleendatads.py:ro \
        -v $PWD/in:/incoming:ro -v $PWD/out:/outgoing:rw -w /outgoing \
-       localhost/fnndsc/pl-spleendata spleendata /incoming /outgoing
+       localhost/fnndsc/pl-spleendatads spleendatads /incoming /outgoing
 
 Testing
 ~~~~~~~
@@ -121,8 +126,8 @@ testing.
 
 .. code:: shell
 
-   docker build -t localhost/fnndsc/pl-spleendata:dev --build-arg extras_require=dev .
-   docker run --rm -it localhost/fnndsc/pl-spleendata:dev pytest
+   docker build -t localhost/fnndsc/pl-spleendatads:dev --build-arg extras_require=dev .
+   docker run --rm -it localhost/fnndsc/pl-spleendatads:dev pytest
 
 Release
 -------
@@ -144,8 +149,8 @@ Build and push an image tagged by the version. For example, for version
 
 ::
 
-   docker build -t docker.io/fnndsc/pl-spleendata:1.2.3 .
-   docker push docker.io/fnndsc/pl-spleendata:1.2.3
+   docker build -t docker.io/fnndsc/pl-spleendatads:1.2.3 .
+   docker push docker.io/fnndsc/pl-spleendatads:1.2.3
 
 Get JSON Representation
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -157,14 +162,16 @@ to produce a JSON description of this plugin, which can be uploaded to
 
 .. code:: shell
 
-   docker run --rm docker.io/fnndsc/pl-spleendata:1.2.3 chris_plugin_info -d docker.io/fnndsc/pl-spleendata:1.2.3 > chris_plugin_info.json
+   docker run --rm docker.io/fnndsc/pl-spleendatads:1.2.3 chris_plugin_info -d docker.io/fnndsc/pl-spleendatads:1.2.3 > chris_plugin_info.json
 
 Intructions on how to upload the plugin to *ChRIS* can be found here:
 https://chrisproject.org/docs/tutorials/upload_plugin
 
-.. |Version| image:: https://img.shields.io/docker/v/fnndsc/pl-spleendata?sort=semver
-   :target: https://hub.docker.com/r/fnndsc/pl-spleendata
-.. |MIT License| image:: https://img.shields.io/github/license/fnndsc/pl-spleendata
-   :target: https://github.com/FNNDSC/pl-spleendata/blob/main/LICENSE
-.. |ci| image:: https://github.com/FNNDSC/pl-spleendata/actions/workflows/ci.yml/badge.svg
-   :target: https://github.com/FNNDSC/pl-spleendata/actions/workflows/ci.yml
+*-30-*
+
+.. |Version| image:: https://img.shields.io/docker/v/fnndsc/pl-spleendatads?sort=semver
+   :target: https://hub.docker.com/r/fnndsc/pl-spleendatadsds
+.. |MIT License| image:: https://img.shields.io/github/license/fnndsc/pl-spleendatads
+   :target: https://github.com/FNNDSC/pl-spleendatads/blob/main/LICENSE
+.. |ci| image:: https://github.com/FNNDSC/pl-spleendatads/actions/workflows/ci.yml/badge.svg
+   :target: https://github.com/FNNDSC/pl-spleendatads/actions/workflows/ci.yml
