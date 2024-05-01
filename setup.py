@@ -31,7 +31,7 @@ setup(
     long_description=readme(),
     author="FNNDSC",
     author_email="dev@babyMRI.org",
-    url="https://github.com/rudolphpienaar/pl-spleendata",
+    url="https://github.com/FNNDSC/pl-spleendatads",
     py_modules=["spleendatads"],
     install_requires=["chris_plugin"],
     license="MIT",

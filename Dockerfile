@@ -5,9 +5,9 @@ FROM docker.io/python:3.12.1-slim-bookworm
 
 LABEL org.opencontainers.image.authors="FNNDSC <dev@babyMRI.org>" \
       org.opencontainers.image.title="Spleen data downloader" \
-      org.opencontainers.image.description="A ChRIS FS plugin to download a set of spleen data"
+      org.opencontainers.image.description="A ChRIS DS plugin to download a set of spleen data"
 
-ARG SRCDIR=/usr/local/src/pl-spleendata
+ARG SRCDIR=/usr/local/src/pl-spleendatads
 WORKDIR ${SRCDIR}
 
 COPY requirements.txt .
@@ -19,4 +19,4 @@ RUN pip install ".[${extras_require}]" \
     && cd / && rm -rf ${SRCDIR}
 WORKDIR /
 
-CMD ["spleendata"]
+CMD ["spleendatads"]
