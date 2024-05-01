@@ -17,7 +17,7 @@ G_SYNOPSIS="
 
  DESCRIPTION
 
-	pypi.sh is a simple helper script to tag and upload a new version of pypi.sh 
+	pypi.sh is a simple helper script to tag and upload a new version of pypi.sh
 
 
 "
@@ -31,13 +31,13 @@ VER=$1
 DIR=$PWD
 pandoc --from=markdown --to=rst --output=README.rst README.md
 git commit -am "v${VER}"
-git push origin main 
+git push origin main
 git tag $VER
 git push origin --tags
 
 #rstcheck README.rst
 python3 setup.py sdist
 cd $DIR
-twine upload dist/spleendata-${VER}.tar.gz
+twine upload dist/spleendatads-${VER}.tar.gz
 
 

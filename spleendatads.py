@@ -8,7 +8,7 @@ from chris_plugin import chris_plugin
 
 from monai.apps.utils import download_and_extract
 
-__version__ = "1.0.6"
+__version__ = "1.0.8"
 
 DISPLAY_TITLE = r"""
 
