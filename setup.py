@@ -25,9 +25,9 @@ def readme():
 
 
 setup(
-    name="spleendata",
-    version=get_version("spleendata.py"),
-    description="A ChRIS FS plugin to download a set of spleen data",
+    name="spleendatads",
+    version=get_version("spleendatads.py"),
+    description="A ChRIS DS plugin to download a set of spleen data",
     long_description=readme(),
     author="FNNDSC",
     author_email="dev@babyMRI.org",
@@ -35,7 +35,7 @@ setup(
     py_modules=["spleendatads"],
     install_requires=["chris_plugin"],
     license="MIT",
-    entry_points={"console_scripts": ["spleendata = spleendata:main"]},
+    entry_points={"console_scripts": ["spleendatads = spleendatads:main"]},
     classifiers=[
         "License :: OSI Approved :: MIT License",
         "Topic :: Scientific/Engineering",
