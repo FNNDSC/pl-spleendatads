@@ -12,9 +12,9 @@ def test_main(tmp_path: Path, capsys):
     (inputdir / "plaintext.txt").write_text("hello ChRIS, I am a ChRIS plugin")
 
     # simulate run of main function
-    options = parser.parse_args(["--version"])
+    options = parser.parse_args(["--man"])
     main(options, inputdir, outputdir)
 
     # assert behavior is expected
     captured = capsys.readouterr()
-    assert "Version" in captured.out
+    assert "SYNOPSIS" in captured.out
