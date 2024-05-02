@@ -15,7 +15,7 @@ import hashlib
 
 from requests.exceptions import RequestException
 
-__version__ = "2.0.0"
+__version__ = "2.0.2"
 
 DISPLAY_TITLE = r"""
 
