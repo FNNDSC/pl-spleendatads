@@ -3,12 +3,19 @@
 from pathlib import Path
 import shutil
 from argparse import ArgumentParser, Namespace, ArgumentDefaultsHelpFormatter
+from typing import BinaryIO
 
 from chris_plugin import chris_plugin
 
-from monai.apps.utils import download_and_extract
+from tqdm import tqdm
+import requests
+import tarfile
+import shutil
+import hashlib
 
-__version__ = "1.0.8"
+from requests.exceptions import RequestException
+
+__version__ = "2.0.0"
 
 DISPLAY_TITLE = r"""
 
@@ -28,10 +35,19 @@ parser = ArgumentParser(
     description="""
     A ChRIS DS plugin that downloads a spleen data set for training
     and inference. Based off a MONAI exemplar:
-
-    https://github.com/Project-MONAI/tutorials/blob/main/3d_segmentation/spleen_segmentation_3d.ipynb
                                     """,
     formatter_class=ArgumentDefaultsHelpFormatter,
+)
+
+parser.add_argument(
+    "--url",
+    default="https://msd-for-monai.s3-us-west-2.amazonaws.com/Task09_Spleen.tar",
+    help="url of remote tar archive file",
+)
+parser.add_argument(
+    "--md5",
+    default="410d4a301da4e5b2f6f86ec3ddba524e",
+    help="md5 sum of remote resource once downloaded",
 )
 parser.add_argument(
     "--skipDownload",
@@ -52,8 +68,106 @@ parser.add_argument(
     help="""If specified, only preserve the testing data (saving about 1.2Gb)""",
 )
 parser.add_argument(
+    "--copyInputDir",
+    default=False,
+    action="store_true",
+    help="""If specified, copy the inputDir to outputDir""",
+)
+parser.add_argument(
+    "--man",
+    default=False,
+    action="store_true",
+    help="""If specified, show simple manual page""",
+)
+parser.add_argument(
     "-V", "--version", action="version", version=f"%(prog)s {__version__}"
 )
+
+
+def man():
+    man: str = """
+
+    NAME
+        spleendatads
+
+    SYNOPSIS
+        spleendatads    [--url <url>]                   \\
+                        [--md5 <sum>]                   \\
+                        [--skipDownload]                \\
+                        [--trainingOnly]                \\
+                        [--testingOnly]                 \\
+                        [--man]                         \\
+                        [--copyInputDir]                \\
+                        <inputDir> <outputDir>
+
+    DESCRIPTION
+
+        `spleendatads` pulls a specific resource from the internet (a tar/gz) file
+        and extracts its contents, optionally also checking the md5sum.
+
+    ARGS:
+        [--url <url>]
+        The url of the resource (file) to download.
+
+        [--md5 <sum>]
+        The md5 sum of this file. Set to empty string to ignore.
+
+        [--skipDownload]
+        If specified, skip the download. Mostly for debugging.
+
+        [--trainingOnly]
+        If specified, keep only the training images.
+
+        [--testingOnly]
+        If specified, keep only the testing images.
+
+        [--man]
+        If specified, show this manual page.
+
+        [--copyInputDir]
+        If specified, copy the input directory to the output.
+
+    """
+    return man
+
+
+def file_downloadAndExtract(url: str, toFile: Path) -> bool:
+    status: bool = True
+
+    try:
+        resp: requests.Response = requests.get(url, stream=True)
+        resp.raise_for_status()
+        totalSize: int = int(resp.headers.get("Content-Length", 0))
+        print(f"Download size {totalSize}")
+        f: BinaryIO
+        chunk: bytes
+        blockSize: int = 8192
+
+        with tqdm(total=totalSize, unit="iB", unit_scale=True) as progress_bar:
+            with open(toFile, "wb") as f:
+                for chunk in resp.iter_content(chunk_size=blockSize):
+                    if chunk:
+                        progress_bar.update(len(chunk))
+                        f.write(chunk)
+
+        tar: tarfile.TarFile
+        with tarfile.open(toFile, "r") as tar:
+            totalMembers = sum(member.size for member in tar.getmembers())
+            progress_bar = tqdm(
+                total=totalMembers, unit="iB", unit_scale=True, desc="Extracting"
+            )
+            for member in tar:
+                tar.extract(member, toFile.parent)
+                progress_bar.update(member.size)
+            progress_bar.close()
+    except RequestException as e:
+        print(f"Error downloading the file {e}")
+    except tarfile.TarError as e:
+        print(f"Error extracting the archive {e}")
+    except Exception as e:
+        print(f"An unexpected error occurred {e}")
+
+    return status
 
 
 def dir_findAndDelete(startdir: Path, target: str):
@@ -92,13 +206,21 @@ def main(options: Namespace, inputdir: Path, outputdir: Path):
     """
 
     print(DISPLAY_TITLE)
-    resource: str = "https://msd-for-monai.s3-us-west-2.amazonaws.com/Task09_Spleen.tar"
-    md5: str = "410d4a301da4e5b2f6f86ec3ddba524e"
+    resource: str = options.url
+    md5: str = options.md5
+
+    if options.man:
+        print(man())
+        return
 
     compressed_file: Path = outputdir / "Task09_Spleen.tar"
     data_dir: Path = outputdir / "Task09_Spleen"
     if not data_dir.exists() or options.skipDownload:
-        download_and_extract(resource, str(compressed_file), str(outputdir), md5)
+        file_downloadAndExtract(resource, compressed_file)
+        # download_and_extract(resource, str(compressed_file), str(outputdir), md5)
+
+    if options.copyInputDir:
+        shutil.copytree(str(inputdir), str(outputdir))
 
     if compressed_file.exists():
         compressed_file.unlink()

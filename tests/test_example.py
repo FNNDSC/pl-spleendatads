@@ -1,21 +1,20 @@
 from pathlib import Path
 
-from spleendata import parser, main
+from spleendatads import parser, main
 
 
-def test_main(tmp_path: Path):
+def test_main(tmp_path: Path, capsys):
     # setup example data
-    inputdir = tmp_path / 'incoming'
-    outputdir = tmp_path / 'outgoing'
+    inputdir = tmp_path / "incoming"
+    outputdir = tmp_path / "outgoing"
     inputdir.mkdir()
     outputdir.mkdir()
-    (inputdir / 'plaintext.txt').write_text('hello ChRIS, I am a ChRIS plugin')
+    (inputdir / "plaintext.txt").write_text("hello ChRIS, I am a ChRIS plugin")
 
     # simulate run of main function
-    options = parser.parse_args(['--word', 'ChRIS', '--pattern', '*.txt'])
+    options = parser.parse_args(["--version"])
     main(options, inputdir, outputdir)
 
     # assert behavior is expected
-    expected_output_file = outputdir / 'plaintext.count.txt'
-    assert expected_output_file.exists()
-    assert expected_output_file.read_text() == '2'
+    captured = capsys.readouterr()
+    assert "Version" in captured.out

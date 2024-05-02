@@ -11,7 +11,7 @@ ARG SRCDIR=/usr/local/src/pl-spleendatads
 WORKDIR ${SRCDIR}
 
 COPY requirements.txt .
-RUN --mount=type=cache,sharing=private,target=/root/.cache/pip pip install -r requirements.txt
+RUN pip install -r requirements.txt
 
 COPY . .
 ARG extras_require=none
