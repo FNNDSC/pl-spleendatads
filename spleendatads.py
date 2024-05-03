@@ -15,13 +15,7 @@ import hashlib
 
 from requests.exceptions import RequestException
 
-<<<<<<< Updated upstream
-__version__ = "2.0.2"
-||||||| Stash base
-__version__ = "2.0.0"
-=======
-__version__ = "2.0.4"
->>>>>>> Stashed changes
+__version__ = "2.0.6"
 
 DISPLAY_TITLE = r"""
 
