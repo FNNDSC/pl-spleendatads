@@ -15,7 +15,13 @@ import hashlib
 
 from requests.exceptions import RequestException
 
+<<<<<<< Updated upstream
 __version__ = "2.0.2"
+||||||| Stash base
+__version__ = "2.0.0"
+=======
+__version__ = "2.0.4"
+>>>>>>> Stashed changes
 
 DISPLAY_TITLE = r"""
 
@@ -170,6 +176,18 @@ def file_downloadAndExtract(url: str, toFile: Path) -> bool:
     return status
 
 
+def delete_dotunders(path: Path):
+    for item in path.iterdir():
+        if item.name.startswith("._"):
+            if item.is_dir():
+                delete_dotunders(item)
+                item.rmdir()
+            else:
+                item.unlink()
+        elif item.is_dir():
+            delete_dotunders(item)
+
+
 def dir_findAndDelete(startdir: Path, target: str):
     for item in startdir.iterdir():
         if item.is_dir():
@@ -190,7 +208,7 @@ def dir_findAndDelete(startdir: Path, target: str):
     parser=parser,
     title="Spleen data downloader",
     category="",  # ref. https://chrisstore.co/plugins
-    min_memory_limit="100Mi",  # supported units: Mi, Gi
+    min_memory_limit="8Gi",  # supported units: Mi, Gi
     min_cpu_limit="1000m",  # millicores, e.g. "1000m" = 1 CPU core
     min_gpu_limit=0,  # set min_gpu_limit=1 to enable GPU
 )
@@ -217,7 +235,7 @@ def main(options: Namespace, inputdir: Path, outputdir: Path):
     data_dir: Path = outputdir / "Task09_Spleen"
     if not data_dir.exists() or options.skipDownload:
         file_downloadAndExtract(resource, compressed_file)
-        # download_and_extract(resource, str(compressed_file), str(outputdir), md5)
+        delete_dotunders(outputdir)
 
     if options.copyInputDir:
         shutil.copytree(str(inputdir), str(outputdir))
